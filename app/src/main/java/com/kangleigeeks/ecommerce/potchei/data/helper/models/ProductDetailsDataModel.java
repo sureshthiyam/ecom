@@ -3,6 +3,8 @@ package com.kangleigeeks.ecommerce.potchei.data.helper.models;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 public class ProductDetailsDataModel {
@@ -77,5 +79,30 @@ public class ProductDetailsDataModel {
     @SerializedName("interested_product")
     @Expose
     public List<InterestedProductModel> interestedProduct;
+
+
+    public boolean isInOffer(){
+        BigDecimal prevprice=new BigDecimal(this.prevPrice);
+        BigDecimal currentPrice= new BigDecimal(this.currentPrice);
+        return currentPrice.compareTo(prevprice) < 0;//Todo sise fajana yengohe
+    }
+
+    public String getOffPercentage(){
+        //Percentage hotline sisina
+        BigDecimal prevpriceBD=new BigDecimal(this.prevPrice);
+        BigDecimal currentPriceBD= new BigDecimal(this.currentPrice);
+        BigDecimal finalpercent=(BigDecimal.ONE.subtract((currentPriceBD.divide(prevpriceBD,2, RoundingMode.HALF_UP)))).multiply(new BigDecimal("100"));
+        if(finalpercent.compareTo(BigDecimal.ONE) > 0){
+            return String.valueOf(finalpercent.setScale(0, RoundingMode.UP));
+        }else {
+            return String.valueOf(finalpercent.setScale(2, RoundingMode.UP));
+        }
+    }
+
+    public String getPreviousPrice(){
+        BigDecimal bd = new BigDecimal(Float.toString(prevPrice));
+        bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+        return bd.toString();
+    }
 
 }

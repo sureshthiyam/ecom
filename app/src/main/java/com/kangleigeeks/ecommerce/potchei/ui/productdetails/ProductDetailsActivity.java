@@ -5,11 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.kangleigeeks.ecommerce.potchei.R;
 import com.kangleigeeks.ecommerce.potchei.data.helper.base.CustomMenuBaseActivity;
 import com.kangleigeeks.ecommerce.potchei.data.helper.base.ItemClickListener;
@@ -47,6 +50,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ProductDetailsActivity extends CustomMenuBaseActivity<ProductDetailsMvpView, ProductDetailsPresenter> implements ProductDetailsMvpView, ItemClickListener<AttributeValueModel>, InterestItemClick {
+    private static String TAG="ProductDetailsActivity";
+
     private ReviewImageAdapter mImageAdapter;
     private InterestProductAdapter mProductAdapter;
     private Loader mLoader;
@@ -68,6 +73,10 @@ public class ProductDetailsActivity extends CustomMenuBaseActivity<ProductDetail
     private List<DetailsAttributeModel> attributeModels;
     private List<AttributeValueModel> selectedModelList = new ArrayList<>();
 
+
+    //View
+    private ConstraintLayout ConstrainLay_prevPrice,ConstrainLay_offerPercent;
+    private TextView tvPrevPreice,tvOffPercent;
 
     @Override
     protected int getLayoutId() {
@@ -103,6 +112,11 @@ public class ProductDetailsActivity extends CustomMenuBaseActivity<ProductDetail
             intentValue = intent.getStringExtra(Constants.SharedPrefCredential.PRODUCT_DETAIL_INTENT);
             presenter.getProductDetailsResponse(intentValue, this);
         }
+        ConstrainLay_offerPercent=findViewById(R.id.lay_off_percent);
+        ConstrainLay_prevPrice=findViewById(R.id.lay_previous_price);
+        tvPrevPreice=findViewById(R.id.text_view_prev_price);
+        tvOffPercent=findViewById(R.id.text_view_offer_percent);
+
     }
 
     @Override
@@ -299,12 +313,24 @@ public class ProductDetailsActivity extends CustomMenuBaseActivity<ProductDetail
      * @param detailsResponse : ProductDetailsResponse
      */
     private void initViewWithResponse(ProductDetailsResponse detailsResponse) {
+        String object=new Gson().toJson(detailsResponse);
+        Log.d(TAG, object);
         prepareImageList(detailsResponse.detailsDataModel.imageList);
         mProductModel = detailsResponse.detailsDataModel;
         if (detailsResponse.detailsDataModel != null) {
             ordered = mProductModel.ordered;
             initTopView();
             initImageLayoutAndReview();
+            //This code is for the Prevprice and Offer///
+
+            if(mProductModel.isInOffer()){//iff the product has Offer
+                ConstrainLay_prevPrice.setVisibility(View.VISIBLE);
+                ConstrainLay_offerPercent.setVisibility(View.VISIBLE);
+                tvPrevPreice.setText(mProductModel.getPreviousPrice());
+                tvOffPercent.setText(String.format("%s%% off!!!",mProductModel.getOffPercentage()));
+
+            }
+            /////////////////////
             checkAttributeAvailability(detailsResponse.detailsDataModel.attribute);
 
             if (detailsResponse.detailsDataModel.inventory != null) {
